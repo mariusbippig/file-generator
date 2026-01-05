@@ -7,16 +7,26 @@ import (
 )
 
 type Config struct {
-	Filename      string
-	FileType      string
-	FileSizeBytes int
-	FilesAmount   int
-	Logger        Logger
+	File             File
+	Logger           Logger
+	ContentGenerator ContentGenerator
 }
 
 type Logger struct {
 	Driver   string
 	LogLevel string
+}
+
+type ContentGenerator struct {
+	Driver string
+}
+
+type File struct {
+	Driver    string
+	Filename  string
+	Type      string
+	SizeBytes int
+	Amount    int
 }
 
 // NewConfig inits a new config by configured config source.
@@ -41,28 +51,38 @@ func NewConfigFromEnv(path string) (Config, error) {
 		return Config{}, err
 	}
 
-	viper.SetDefault("filename", "foobar")
-	viper.SetDefault("fileType", "txt")
-	viper.SetDefault("size", "size")
-	viper.SetDefault("amount", "size")
+	viper.SetDefault("file.driver", "local")
+	viper.SetDefault("file.filename", "foobar")
+	viper.SetDefault("file.type", "txt")
+	viper.SetDefault("file.sizeBytes", 5000)
+	viper.SetDefault("file.amount", 1)
 	viper.SetDefault("logger.driver", "console")
 	viper.SetDefault("logger.logLevel", "debug")
+	viper.SetDefault("contentGenerator.driver", "mock")
 
-	viper.BindEnv("filename", "FILENAME")
-	viper.BindEnv("fileType", "FILETYPE")
-	viper.BindEnv("size", "SIZE")
-	viper.BindEnv("size", "SIZE")
-	viper.BindEnv("logger.driver", "LOGGER")
+	viper.BindEnv("file.driver", "FILE_DRIVER")
+	viper.BindEnv("file.filename", "FILENAME")
+	viper.BindEnv("file.type", "FILETYPE")
+	viper.BindEnv("file.sizeBytes", "FILE_SIZE")
+	viper.BindEnv("file.amount", "FILE_AMOUNT")
+	viper.BindEnv("logger.driver", "LOG_DRIVER")
 	viper.BindEnv("logger.logLevel", "LOG_LEVEL")
+	viper.BindEnv("contentGenerator.driver", "CONTENT_GENERATOR_DRIVER")
 
 	config := Config{
-		Filename:      viper.GetString("filename"),
-		FileType:      viper.GetString("fileType"),
-		FileSizeBytes: viper.GetInt("size"),
-		FilesAmount:   viper.GetInt("amount"),
+		File: File{
+			Driver:    viper.GetString("file.driver"),
+			Filename:  viper.GetString("file.filename"),
+			Type:      viper.GetString("file.type"),
+			SizeBytes: viper.GetInt("file.sizeBytes"),
+			Amount:    viper.GetInt("file.amount"),
+		},
 		Logger: Logger{
 			Driver:   viper.GetString("logger.driver"),
 			LogLevel: viper.GetString("logger.logLevel"),
+		},
+		ContentGenerator: ContentGenerator{
+			Driver: viper.GetString("contentGenerator.driver"),
 		},
 	}
 

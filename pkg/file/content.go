@@ -1,42 +1,33 @@
 package file
 
+import "fmt"
+
 type ContentGenerator interface {
-	GenerateBatch() []byte
+	Read(p []byte) (int, error)
 }
 
-func NewContentGenerator(fileSize int) (ContentGenerator, error) {
-	return NewRoughContentGenerator(fileSize), nil
-}
-
-type RoughContentGenerator struct {
-	BatchSize int
-}
-
-func NewRoughContentGenerator(fileSize int) ContentGenerator {
-	batchSizeBytes := 8
-
-	// If a file size is wished in different sizes, we apply different precision levels when writing
-	// batches to recude hard disk usage.
-	if fileSize > 1000000*1000 {
-		batchSizeBytes = 1000000 * 30
-	} else if fileSize > 1000000 {
-		batchSizeBytes = 100000
-	} else if fileSize > 100 {
-		batchSizeBytes = 50
-	}
-
-	return RoughContentGenerator{
-		BatchSize: batchSizeBytes,
+func NewContentGenerator(driver string) (ContentGenerator, error) {
+	switch driver {
+	case "mock":
+		return NewMockContentGenerator(), nil
+	default:
+		return nil, fmt.Errorf("Content generator driver %s has not been implemented", driver)
 	}
 }
 
-func (rcg RoughContentGenerator) GenerateBatch() []byte {
-	batch := []byte("01234567")
+type MockContentGenerator struct {
+}
 
-	for len(batch) < rcg.BatchSize {
-		extra := []byte("01234567")
-		batch = append(batch, extra...)
+func NewMockContentGenerator() ContentGenerator {
+	return &MockContentGenerator{}
+}
+
+func (rcg *MockContentGenerator) Read(p []byte) (int, error) {
+	readBytes := 0
+
+	for ; readBytes < len(p); readBytes++ {
+		p[readBytes] = byte(65)
 	}
 
-	return batch
+	return readBytes, nil
 }

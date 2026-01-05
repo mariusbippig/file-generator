@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"cmd/pkg/config"
 	"cmd/pkg/file"
 	"cmd/pkg/logger"
 	"fmt"
-	"os"
 )
 
 func main() {
@@ -20,34 +18,39 @@ func main() {
 		panic(err)
 	}
 
-	contentGenerator, err := file.NewContentGenerator(config.FileSizeBytes)
+	// TODO add parallel creation of multiple files
+	contentGenerator, err := file.NewContentGenerator(config.ContentGenerator.Driver)
 	if err != nil {
 		logger.Panic(err.Error())
 	}
 
-	// TODO replace "file" with driver based file location to have e.g. different storage points
-	filename, err := file.EvaluateFilename(config.Filename, config.FileType)
-	if err != nil {
-		logger.Panic(err.Error())
-	}
-
-	// TODO implement creation of multiple files in parallel
-	file, err := os.Create(filename)
+	file, err := file.NewFile(config.File.Driver, config.File.Filename, config.File.Type)
 	if err != nil {
 		logger.Panic(err.Error())
 	}
 
 	defer file.Close()
-	totalFileSize := 0
 
-	bufioWriter := bufio.NewWriter(file)
+	totalFileSize := 0
+	defaultBufferSize := 512
 
 	for {
-		if totalFileSize >= (config.FileSizeBytes) {
+		if totalFileSize == config.File.SizeBytes {
 			break
 		}
 
-		writtenBytes, err := bufioWriter.Write(contentGenerator.GenerateBatch())
+		if totalFileSize+defaultBufferSize > config.File.SizeBytes {
+			defaultBufferSize = config.File.SizeBytes - totalFileSize
+		}
+
+		buffer := make([]byte, defaultBufferSize)
+
+		_, err := contentGenerator.Read(buffer)
+		if err != nil {
+			logger.Panic(err.Error())
+		}
+
+		writtenBytes, err := file.Write(buffer)
 		if err != nil {
 			logger.Panic(err.Error())
 		}
@@ -68,5 +71,5 @@ func main() {
 		unit = "KB"
 	}
 
-	logger.Info(fmt.Sprintf("File %s created with size of %d %s.", filename, totalFileSize, unit))
+	logger.Info(fmt.Sprintf("File %s created with size of %d %s.", file.GetFilename(), totalFileSize, unit))
 }

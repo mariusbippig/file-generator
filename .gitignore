@@ -1,2 +1,2 @@
-cmd/foobar.txt
+cmd/foobar*
 .DS_Store
