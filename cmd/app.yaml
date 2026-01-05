@@ -1,0 +1,7 @@
+filename: "foobar"
+fileType: "txt"
+size: 5000000
+amount: 1
+logger:
+  driver: "console"
+  debugLogs: "true"
