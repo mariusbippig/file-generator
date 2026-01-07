@@ -15,7 +15,6 @@ type LocalFile struct {
 }
 
 // NewLocalFile creates a new local file with the specified filename and type.
-// It automatically handles filename conflicts by appending numbers in parentheses.
 func NewLocalFile(filename string, fileType string) (File, error) {
 	filename, err := evaluateFilename(filename, fileType)
 	if err != nil {

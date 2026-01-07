@@ -19,7 +19,6 @@ func main() {
 		panic(err)
 	}
 
-	// TODO add parallel creation of multiple files
 	contentGenerator, err := file.NewContentGenerator(config.ContentGenerator.Driver)
 	if err != nil {
 		logger.Panic(err.Error())

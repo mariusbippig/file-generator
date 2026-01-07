@@ -6,8 +6,8 @@ type ConsoleLogger struct {
 	LogLevel int
 }
 
-// NewConsoleLogger creates a new ConsoleLogger instance with the specified log level.
-// Log messages are printed to standard output.
+// NewConsoleLogger creates a new ConsoleLogger instance with the specified log level,
+// which prints log messages to standard output.
 func NewConsoleLogger(logLevel int) Logger {
 	return ConsoleLogger{
 		LogLevel: logLevel,

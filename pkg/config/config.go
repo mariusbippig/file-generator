@@ -30,7 +30,6 @@ type File struct {
 }
 
 // NewConfig initializes a new config by the configured config source.
-// It accepts a path parameter for the config file name and returns a Config struct.
 func NewConfig(path string) (Config, error) {
 	// TODO add new config origins as drivers here.
 	driver := "env"
