@@ -26,12 +26,14 @@ func main() {
 		waitGroup.Go(func() {
 			contentGenerator, err := file.NewContentGenerator(config.ContentGenerator.Driver)
 			if err != nil {
-				logger.Panic(err.Error())
+				logger.Critical(fmt.Sprintf("Initiation of content generator failed: %v", err.Error()))
+				return
 			}
 
 			file, err := file.NewFile(config.File.Driver, config.File.Filename, config.File.Type)
 			if err != nil {
-				logger.Panic(err.Error())
+				logger.Critical(fmt.Sprintf("Creation of new file failed: %v", err.Error()))
+				return
 			}
 
 			defer file.Close()
@@ -52,12 +54,14 @@ func main() {
 
 				_, err := contentGenerator.Read(buffer)
 				if err != nil {
-					logger.Panic(err.Error())
+					logger.Critical(fmt.Sprintf("Reading from content generator failed: %v", err.Error()))
+					return
 				}
 
 				writtenBytes, err := file.Write(buffer)
 				if err != nil {
-					logger.Panic(err.Error())
+					logger.Critical(fmt.Sprintf("Writing to file failed: %v", err.Error()))
+					return
 				}
 
 				totalFileSize += writtenBytes
