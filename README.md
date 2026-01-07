@@ -127,12 +127,15 @@ file-generator/
 │   ├── file/
 │   │   ├── file.go       # File interface and factory
 │   │   ├── localFile.go  # Local file driver implementation
-│   │   └── content.go    # Content generator interface and implementations
+│   │   ├── content.go    # Content generator interface
+│   │   └── mock.go       # Mock content generator implementation
 │   └── logger/
-│       ├── logger.go     # Logger interface
+│       ├── logger.go     # Logger interface and factory
 │       ├── console.go    # Console logger implementation
 │       └── noop.go       # No-op logger implementation
 ├── go.mod
+├── go.sum
+├── LICENSE
 └── README.md
 ```
 
