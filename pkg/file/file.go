@@ -8,8 +8,7 @@ type File interface {
 	GetFilename() string
 }
 
-// NewFile creates a new File instance based on the specified driver.
-// It acts as a factory function that returns the appropriate File implementation.
+// NewFile is a factory function which creates a new File instance based on the specified driver.
 func NewFile(driver string, filename string, fileType string) (File, error) {
 	switch driver {
 	case "local":
