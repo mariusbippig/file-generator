@@ -29,7 +29,8 @@ type File struct {
 	Amount    int
 }
 
-// NewConfig inits a new config by configured config source.
+// NewConfig initializes a new config by the configured config source.
+// It accepts a path parameter for the config file name and returns a Config struct.
 func NewConfig(path string) (Config, error) {
 	// TODO add new config origins as drivers here.
 	driver := "env"
@@ -40,6 +41,8 @@ func NewConfig(path string) (Config, error) {
 	}
 }
 
+// NewConfigFromEnv loads configuration from a YAML file and environment variables.
+// It uses Viper to read the config file and bind environment variables, returning a Config struct.
 func NewConfigFromEnv(path string) (Config, error) {
 	viper.SetConfigName(path)
 	viper.AddConfigPath(".")

@@ -14,6 +14,8 @@ type LocalFile struct {
 	fileWriter *bufio.Writer
 }
 
+// NewLocalFile creates a new local file with the specified filename and type.
+// It automatically handles filename conflicts by appending numbers in parentheses.
 func NewLocalFile(filename string, fileType string) (File, error) {
 	filename, err := evaluateFilename(filename, fileType)
 	if err != nil {
@@ -34,18 +36,24 @@ func NewLocalFile(filename string, fileType string) (File, error) {
 	}, nil
 }
 
+// Write writes the provided byte slice to the local file using a buffered writer.
+// It returns the number of bytes written and any error encountered.
 func (lf LocalFile) Write(w []byte) (int, error) {
 	return lf.fileWriter.Write(w)
 }
 
+// Close closes the underlying file handle.
 func (lf LocalFile) Close() {
 	lf.File.Close()
 }
 
+// GetFilename returns the full filename including path and extension.
 func (lf LocalFile) GetFilename() string {
 	return lf.Filename
 }
 
+// evaluateFilename checks if a file already exists and generates a unique filename.
+// If a conflict exists, it appends a number in parentheses (e.g., "file (1).txt").
 func evaluateFilename(filename string, fileType string) (string, error) {
 	// check if file with same filename exists already
 	fileInfoFilename, _ := os.Stat(fmt.Sprintf("%s.%s", filename, fileType))

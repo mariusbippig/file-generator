@@ -7,6 +7,7 @@ import (
 	"fmt"
 )
 
+// main is the entry point of the application that generates files with specified sizes
 func main() {
 	config, err := config.NewConfig("app")
 	if err != nil {

@@ -17,6 +17,8 @@ type Logger interface {
 	Debug(message string)
 }
 
+// NewLogger creates a new Logger instance based on the configuration.
+// It acts as a factory function that returns the appropriate Logger implementation.
 func NewLogger(config config.Config) (Logger, error) {
 	logLevel, err := mapHumanReadableLogLevel(config.Logger.LogLevel)
 	if err != nil {
