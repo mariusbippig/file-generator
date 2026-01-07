@@ -59,7 +59,7 @@ func NewConfigFromEnv(path string) (Config, error) {
 	viper.SetDefault("file.sizeBytes", 5000)
 	viper.SetDefault("file.amount", 1)
 	viper.SetDefault("logger.driver", "console")
-	viper.SetDefault("logger.logLevel", "debug")
+	viper.SetDefault("logger.logLevel", "error")
 	viper.SetDefault("contentGenerator.driver", "mock")
 
 	viper.BindEnv("file.driver", "FILE_DRIVER")

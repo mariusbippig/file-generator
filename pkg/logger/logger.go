@@ -37,6 +37,8 @@ func NewLogger(config config.Config) (Logger, error) {
 // mapHumanReadableLogLevel translates a string e.g. "debug" into the related log level number
 func mapHumanReadableLogLevel(level string) (int, error) {
 	switch level {
+	case "error":
+		return logLevelError, nil
 	case "debug":
 		return logLevelDebug, nil
 	case "info":

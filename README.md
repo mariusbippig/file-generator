@@ -50,7 +50,7 @@ file:
   amount: 1
 logger:
   driver: "console"
-  logLevel: "debug"
+  logLevel: "error"
 contentGenerator:
   driver: "mock"
 ```
