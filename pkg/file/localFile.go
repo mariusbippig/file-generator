@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type LocalFile struct {
@@ -14,8 +15,18 @@ type LocalFile struct {
 	fileWriter *bufio.Writer
 }
 
+var localFileList LocalFileList
+
+type LocalFileList struct {
+	List    sync.Map
+	RWMutex sync.RWMutex
+}
+
 // NewLocalFile creates a new local file with the specified filename and type.
 func NewLocalFile(filename string, fileType string) (File, error) {
+	localFileList.RWMutex.Lock()
+	defer localFileList.RWMutex.Unlock()
+
 	filename, err := evaluateFilename(filename, fileType)
 	if err != nil {
 		return nil, err
@@ -58,6 +69,8 @@ func evaluateFilename(filename string, fileType string) (string, error) {
 	fileInfoFilename, _ := os.Stat(fmt.Sprintf("%s.%s", filename, fileType))
 
 	if fileInfoFilename != nil {
+		localFileList.List.Store(fmt.Sprintf("%s.%s", filename, fileType), true)
+
 		number := 1
 		newFilename := fmt.Sprintf("%s (1)", filename)
 

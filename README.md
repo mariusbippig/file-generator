@@ -5,10 +5,12 @@ A flexible Go application for generating files with configurable sizes and conte
 ## Features
 
 - 📁 Generate files of any specified size
+- 🚀 Parallel file generation using goroutines
 - ⚙️ Configurable via YAML or environment variables
 - 🔌 Pluggable driver architecture for extensibility
 - 📊 Human-readable file size output (bytes, KB, MB, GB)
 - 🪵 Flexible logging system
+- 🔒 Thread-safe local file creation with automatic duplicate filename handling
 
 ## Architecture
 
@@ -77,7 +79,7 @@ export CONTENT_GENERATOR_DRIVER="mock"
 | `file.filename` | `FILENAME` | `foobar` | Output filename (without extension) |
 | `file.type` | `FILETYPE` | `txt` | File extension |
 | `file.sizeBytes` | `FILE_SIZE` | `5000` | Target file size in bytes |
-| `file.amount` | `FILE_AMOUNT` | `1` | Number of files to generate (not yet implemented) |
+| `file.amount` | `FILE_AMOUNT` | `1` | Number of files to generate (in parallel) |
 | `logger.driver` | `LOG_DRIVER` | `console` | Logger driver to use |
 | `logger.logLevel` | `LOG_LEVEL` | `debug` | Logging level |
 | `contentGenerator.driver` | `CONTENT_GENERATOR_DRIVER` | `mock` | Content generator driver |
@@ -94,8 +96,9 @@ go run main.go
 ### With Custom Configuration
 
 ```bash
-export FILENAME="testfile.txt"
+export FILENAME="testfile"
 export FILE_SIZE=10000000  # 10MB
+export FILE_AMOUNT=2       # Generate 2 files in parallel
 go run cmd/main.go
 ```
 
@@ -143,10 +146,13 @@ file-generator/
 
 1. **Configuration Loading**: Reads configuration from `app.yaml` or environment variables using Viper
 2. **Logger Initialization**: Creates a logger instance based on the configured driver
-3. **Content Generator Setup**: Initializes the content generator (currently supports mock data)
-4. **File Creation**: Creates the output file using the specified driver
-5. **Buffer-Based Writing**: Writes content in 512-byte chunks until the target file size is reached
-6. **Progress Reporting**: Logs the final file size in human-readable format
+3. **Parallel File Generation**: Spawns goroutines based on `file.amount` configuration
+4. **Content Generator Setup**: Each goroutine initializes its own content generator
+5. **Thread-Safe File Creation**: LocalFile driver uses RWMutex to prevent filename conflicts
+6. **Buffer-Based Writing**: Writes content in 512-byte chunks until the target file size is reached
+7. **Automatic Filename Deduplication**: Appends numbers (e.g., "file (1).txt") when filenames conflict
+8. **Synchronization**: Main thread waits for all goroutines to complete using sync.WaitGroup
+9. **Summary Output**: Displays total number of files created
 
 ## Future Enhancements
 
@@ -155,6 +161,7 @@ file-generator/
 - [ ] Additional file storage drivers (S3, FTP, etc.)
 - [ ] Progress bar for large file generation
 - [ ] Streaming support for very large files
+- [ ] Configurable buffer size for file writing
 
 ## Dependencies
 
