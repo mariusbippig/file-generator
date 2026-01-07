@@ -15,7 +15,7 @@ func (nl NoopLogger) Panic(message string) {}
 func (nl NoopLogger) Error(message string) {}
 
 // Info does nothing (no-op implementation).
-func (nl NoopLogger) Info(message string)  {}
+func (nl NoopLogger) Info(message string) {}
 
 // Debug does nothing (no-op implementation).
 func (nl NoopLogger) Debug(message string) {}
