@@ -11,7 +11,8 @@ const logLevelInfo = 200
 const logLevelDebug = 100
 
 type Logger interface {
-	Panic(message string)
+	Emergency(message string)
+	Critical(message string)
 	Error(emessage string)
 	Info(message string)
 	Debug(message string)

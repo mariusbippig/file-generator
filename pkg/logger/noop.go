@@ -8,8 +8,11 @@ func NewNoopLogger() Logger {
 
 type NoopLogger struct{}
 
-// Panic does nothing (no-op implementation).
-func (nl NoopLogger) Panic(message string) {}
+// Emergency does nothing (no-op implementation).
+func (nl NoopLogger) Emergency(message string) {}
+
+// Critical does nothing (no-op implementation).
+func (nl NoopLogger) Critical(message string) {}
 
 // Error does nothing (no-op implementation).
 func (nl NoopLogger) Error(message string) {}
