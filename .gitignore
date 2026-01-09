@@ -1,3 +1,4 @@
 cmd/foobar*
 .DS_Store
 file-generator
+cmd/app.yaml
