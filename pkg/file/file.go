@@ -5,6 +5,7 @@ import "fmt"
 type File interface {
 	Write(w []byte) (int, error)
 	Close()
+	Delete()
 	GetFilename() string
 }
 

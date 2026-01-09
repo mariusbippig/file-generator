@@ -57,6 +57,11 @@ func (lf LocalFile) Close() {
 	lf.File.Close()
 }
 
+// Delete removes the local file from the filesystem.
+func (lf LocalFile) Delete() {
+	os.Remove(lf.Filename)
+}
+
 // GetFilename returns the full filename including path and extension.
 func (lf LocalFile) GetFilename() string {
 	return lf.Filename

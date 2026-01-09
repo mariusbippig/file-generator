@@ -10,6 +10,7 @@ type Config struct {
 	File             File
 	Logger           Logger
 	ContentGenerator ContentGenerator
+	Generator        Generator
 }
 
 type Logger struct {
@@ -27,6 +28,10 @@ type File struct {
 	Type      string
 	SizeBytes int
 	Amount    int
+}
+
+type Generator struct {
+	Routines int
 }
 
 // NewConfig initializes a new config by the configured config source.
@@ -61,6 +66,7 @@ func NewConfigFromEnv(path string) (Config, error) {
 	viper.SetDefault("logger.driver", "console")
 	viper.SetDefault("logger.logLevel", "error")
 	viper.SetDefault("contentGenerator.driver", "mock")
+	viper.SetDefault("generator.routines", 5)
 
 	viper.BindEnv("file.driver", "FILE_DRIVER")
 	viper.BindEnv("file.filename", "FILENAME")
@@ -70,6 +76,7 @@ func NewConfigFromEnv(path string) (Config, error) {
 	viper.BindEnv("logger.driver", "LOG_DRIVER")
 	viper.BindEnv("logger.logLevel", "LOG_LEVEL")
 	viper.BindEnv("contentGenerator.driver", "CONTENT_GENERATOR_DRIVER")
+	viper.BindEnv("generator.routines", "GENERATOR_ROUTINES")
 
 	config := Config{
 		File: File{
@@ -85,6 +92,9 @@ func NewConfigFromEnv(path string) (Config, error) {
 		},
 		ContentGenerator: ContentGenerator{
 			Driver: viper.GetString("contentGenerator.driver"),
+		},
+		Generator: Generator{
+			Routines: viper.GetInt("generator.routines"),
 		},
 	}
 

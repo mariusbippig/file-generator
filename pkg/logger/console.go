@@ -16,7 +16,7 @@ func NewConsoleLogger(logLevel int) Logger {
 
 // Emergency logs a panic-level message and terminates the program.
 func (cl ConsoleLogger) Emergency(message string) {
-	panic(fmt.Sprintf("[EMERGENCY] %s", message))
+	fmt.Printf("[EMERGENCY] %s", message)
 }
 
 // Critical logs a critical-level message if the log level permits.
