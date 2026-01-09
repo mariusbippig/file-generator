@@ -5,12 +5,14 @@ A flexible Go application for generating files with configurable sizes and conte
 ## Features
 
 - 📁 Generate files of any specified size
-- 🚀 Parallel file generation using goroutines
+- 🚀 Parallel file generation using configurable worker pool
+- 🛑 Graceful shutdown with signal handling (SIGINT, SIGTERM, SIGHUP)
 - ⚙️ Configurable via YAML or environment variables
 - 🔌 Pluggable driver architecture for extensibility
-- 📊 Human-readable file size output (bytes, KB, MB, GB)
-- 🪵 Flexible logging system
-- 🔒 Thread-safe local file creation with automatic duplicate filename handling
+- 🪵 Flexible logging system with multiple levels
+- 🔒 Thread-safe local file creation with RWMutex
+- 🔄 Automatic duplicate filename handling (appends numbers) for default local file driver
+- 🧹 Automatic cleanup of incomplete files on shutdown
 
 ## Architecture
 
@@ -48,8 +50,8 @@ Create an `app.yaml` file in the `cmd/` directory:
 file:
   filename: "foobar"
   type: "txt"
-  sizeBytes: 2000
-  amount: 1
+  sizeBytes: 5000
+  amount: 10
 logger:
   driver: "console"
   logLevel: "error"
@@ -65,9 +67,9 @@ Alternatively, use environment variables:
 export FILENAME="myfile"
 export FILETYPE="txt"
 export FILE_SIZE=5000
-export FILE_AMOUNT=1
+export FILE_AMOUNT=10
 export LOG_DRIVER="console"
-export LOG_LEVEL="debug"
+export LOG_LEVEL="error"
 export CONTENT_GENERATOR_DRIVER="mock"
 ```
 
@@ -79,9 +81,10 @@ export CONTENT_GENERATOR_DRIVER="mock"
 | `file.filename` | `FILENAME` | `foobar` | Output filename (without extension) |
 | `file.type` | `FILETYPE` | `txt` | File extension |
 | `file.sizeBytes` | `FILE_SIZE` | `5000` | Target file size in bytes |
-| `file.amount` | `FILE_AMOUNT` | `1` | Number of files to generate (in parallel) |
+| `file.amount` | `FILE_AMOUNT` | `1` | Number of files to generate |
+| `generator.routines` | `GENERATOR_ROUTINES` | `5` | Number of worker goroutines |
 | `logger.driver` | `LOG_DRIVER` | `console` | Logger driver to use |
-| `logger.logLevel` | `LOG_LEVEL` | `debug` | Logging level |
+| `logger.logLevel` | `LOG_LEVEL` | `error` | Logging level (debug, info, error) |
 | `contentGenerator.driver` | `CONTENT_GENERATOR_DRIVER` | `mock` | Content generator driver |
 
 ## Usage
@@ -97,8 +100,8 @@ go run main.go
 
 ```bash
 export FILENAME="testfile"
-export FILE_SIZE=10000000  # 10MB
-export FILE_AMOUNT=2       # Generate 2 files in parallel
+export FILE_SIZE=10000000    # 10MB
+export FILE_AMOUNT=20        # Generate 20 files
 go run cmd/main.go
 ```
 
@@ -145,22 +148,24 @@ file-generator/
 ## How It Works
 
 1. **Configuration Loading**: Reads configuration from `app.yaml` or environment variables using Viper
-2. **Logger Initialization**: Creates a logger instance based on the configured driver
-3. **Parallel File Generation**: Spawns goroutines based on `file.amount` configuration
-4. **Content Generator Setup**: Each goroutine initializes its own content generator
-5. **Thread-Safe File Creation**: LocalFile driver uses RWMutex to prevent filename conflicts
-6. **Buffer-Based Writing**: Writes content in 512-byte chunks until the target file size is reached
-7. **Automatic Filename Deduplication**: Appends numbers (e.g., "file (1).txt") when filenames conflict
-8. **Synchronization**: Main thread waits for all goroutines to complete using sync.WaitGroup
-9. **Summary Output**: Displays total number of files created
+2. **Signal Handling**: Sets up context with signal notification for graceful shutdown (SIGINT, SIGTERM, SIGHUP)
+3. **Logger Initialization**: Creates a logger instance based on the configured driver
+4. **Job Queue**: Creates a buffered channel with all file generation jobs
+5. **Worker Pool**: Spawns configurable number of worker goroutines (`generator.routines`)
+6. **Content Generator Setup**: Each worker initializes its own content generator
+7. **Thread-Safe File Creation**: LocalFile driver uses RWMutex to prevent concurrent filename conflicts
+8. **Buffer-Based Writing**: Writes content in 512-byte chunks until target file size is reached
+9. **Context Checks**: Workers check for shutdown signals between files and during writes (every 512 bytes)
+10. **Automatic Filename Deduplication**: Appends numbers (e.g., "file (1).txt") when filenames conflict
+11. **Graceful Shutdown**: On signal, workers stop immediately and clean up incomplete files
+12. **Synchronization**: Main thread waits for all workers to complete using sync.WaitGroup
 
 ## Future Enhancements
 
-- [ ] Parallel creation of multiple files (see TODO in main.go)
+- [ ] Additional job input drivers
 - [ ] Additional content generator drivers (random, pattern-based, etc.)
 - [ ] Additional file storage drivers (S3, FTP, etc.)
 - [ ] Progress bar for large file generation
-- [ ] Streaming support for very large files
 - [ ] Configurable buffer size for file writing
 
 ## Dependencies
