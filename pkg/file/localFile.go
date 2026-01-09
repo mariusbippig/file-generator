@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,6 +31,14 @@ func NewLocalFile(filename string, fileType string) (File, error) {
 	filename, err := evaluateFilename(filename, fileType)
 	if err != nil {
 		return nil, err
+	}
+
+	directory := filepath.Dir(filename)
+	if len(directory) > 0 {
+		err = os.MkdirAll(directory, 0755)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create missing directory %s: %v", directory, err)
+		}
 	}
 
 	newFile, err := os.Create(filename)
@@ -71,44 +80,49 @@ func (lf LocalFile) GetFilename() string {
 // If a conflict exists, it appends a number in parentheses (e.g., "file (1).txt").
 func evaluateFilename(filename string, fileType string) (string, error) {
 	// check if file with same filename exists already
-	fileInfoFilename, _ := os.Stat(fmt.Sprintf("%s.%s", filename, fileType))
+	_, err := os.Stat(fmt.Sprintf("%s.%s", filename, fileType))
+	if os.IsNotExist(err) {
+		return fmt.Sprintf("%s.%s", filename, fileType), nil
+	}
 
-	if fileInfoFilename != nil {
-		localFileList.List.Store(fmt.Sprintf("%s.%s", filename, fileType), true)
+	if err != nil {
+		return "", err
+	}
 
-		number := 1
-		newFilename := fmt.Sprintf("%s (1)", filename)
+	localFileList.List.Store(fmt.Sprintf("%s.%s", filename, fileType), true)
 
-		for {
-			// check if fallback name already exists
-			fileInfoFilenameWithSuffix, _ := os.Stat(fmt.Sprintf("%s.%s", newFilename, fileType))
-			if fileInfoFilenameWithSuffix == nil {
-				filename = newFilename
-				break
-			}
+	newFilename := fmt.Sprintf("%s (1)", filename)
 
-			// file seems to exist
-			parts := strings.Split(fileInfoFilenameWithSuffix.Name(), ".")
-
-			// take filename itself and check if it already contains a number with brackets as suffix
-			numberWithBrackets, found := strings.CutPrefix(parts[0], filename+" ")
-			if !found {
-				return "", fmt.Errorf("Something went wrong with filename stuff")
-			}
-
-			// remove brackets from number suffix
-			replacer := strings.NewReplacer("(", "", ")", "")
-			numberWithBrackets = replacer.Replace(numberWithBrackets)
-
-			var err error
-			number, err = strconv.Atoi(numberWithBrackets)
-			if err != nil {
-				return "", err
-			}
-
-			number++
-			newFilename = fmt.Sprintf("%s (%d)", filename, number)
+	for number := 1; true; number++ {
+		// check if fallback name already exists
+		fileInfoFilenameWithSuffix, _ := os.Stat(fmt.Sprintf("%s.%s", newFilename, fileType))
+		if fileInfoFilenameWithSuffix == nil {
+			filename = newFilename
+			break
 		}
+
+		// file seems to exist - extract the number from the existing numbered filename
+		parts := strings.Split(fileInfoFilenameWithSuffix.Name(), ".")
+
+		// Extract the number from pattern like "filename (N)"
+		// Find the last occurrence of " (" to handle filenames that might contain spaces
+		baseName := parts[0]
+		lastSuffixIndex := strings.LastIndex(baseName, " (")
+		if lastSuffixIndex == -1 {
+			return "", fmt.Errorf("Failed to parse numbered suffix from existing file '%s.%s'.", filename, fileType)
+		}
+
+		// Extract text between " (" and ")"
+		numberWithBrackets := baseName[lastSuffixIndex+2 : len(baseName)-1]
+
+		var err error
+		number, err = strconv.Atoi(numberWithBrackets)
+		if err != nil {
+			return "", fmt.Errorf("Failed to parse number from suffix from existing file '%s.%s'.", filename, fileType)
+		}
+
+		number++
+		newFilename = fmt.Sprintf("%s (%d)", filename, number)
 	}
 
 	return fmt.Sprintf("%s.%s", filename, fileType), nil
