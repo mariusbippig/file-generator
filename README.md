@@ -11,8 +11,9 @@ A flexible Go application for generating files with configurable sizes and conte
 - 🔌 Pluggable driver architecture for extensibility
 - 🪵 Flexible logging system with multiple levels
 - 🔒 Thread-safe local file creation with RWMutex
-- 🔄 Automatic duplicate filename handling (appends numbers) for default local file driver
+- 🔄 Automatic duplicate filename handling (appends numbers like "file (1).txt", "file (2).txt") for default local file driver
 - 🧹 Automatic cleanup of incomplete files on shutdown
+- ✅ Comprehensive unit tests for core functionality
 
 ## Architecture
 
@@ -133,11 +134,14 @@ file-generator/
 │   ├── file/
 │   │   ├── file.go       # File interface and factory
 │   │   ├── localFile.go  # Local file driver implementation
+│   │   ├── localFile_test.go  # Unit tests for filename handling
 │   │   ├── content.go    # Content generator interface
 │   │   └── mock.go       # Mock content generator implementation
 │   └── logger/
 │       ├── logger.go     # Logger interface and factory
+│       ├── logger_test.go     # Unit tests for logger factory
 │       ├── console.go    # Console logger implementation
+│       ├── console_test.go    # Unit tests for console logger
 │       └── noop.go       # No-op logger implementation
 ├── go.mod
 ├── go.sum
@@ -160,8 +164,14 @@ file-generator/
 11. **Graceful Shutdown**: On signal, workers stop immediately and clean up incomplete files
 12. **Synchronization**: Main thread waits for all workers to complete using sync.WaitGroup
 
+## Test Coverage
+
+- **Logger Package**: Tests for log level mapping
+- **File Package**: Tests for filename evaluation and duplicate handling logic of the local file driver
+
 ## Future Enhancements
 
+- [ ] Further test coverage
 - [ ] Additional job input drivers
 - [ ] Additional content generator drivers (random, pattern-based, etc.)
 - [ ] Additional file storage drivers (S3, FTP, etc.)
